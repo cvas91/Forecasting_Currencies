@@ -69,6 +69,7 @@ for df, ax, currency, name in zip(dataframes, axes.flatten(), Currencies, curren
 plt.tight_layout()
 ```
 
+![Figure 1: Historic Closing Exchange Rates - Cleaned Data.](https://)
 
 
 
