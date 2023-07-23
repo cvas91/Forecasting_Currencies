@@ -67,9 +67,21 @@ for df, ax, currency, name in zip(dataframes, axes.flatten(), Currencies, curren
     ax.set_title(name)
     ax.grid(True)
 plt.tight_layout()
+
+# Visualize Feature / Target Relationship
+# Horizontal plots
+fig, axes = plt.subplots(2,5, figsize=(20,10))
+plt.suptitle("Closing Rate by Year").set_y(1)
+
+for df, ax, currency, name in zip(dataframes, axes.flatten(), Currencies, currencies_names):
+    sns.boxplot(y='Close', x= 'Year', data=df, ax=ax, orient='v').set_title(name)#
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+    # x_ticks, x_labels = plt.xticks()# Get the current x tick labels and positions
+    # plt.xticks(x_ticks[::2], x_labels[::2])# Set the x tick labels and positions to only include every other label
+    ax.grid(True)
+plt.tight_layout()
 ```
+![Figure 1: Historic Closing Exchange Rates - Cleaned Data.](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20195652.png)
 
-![Figure 1: Historic Closing Exchange Rates - Cleaned Data.](https://)
-
-
+![Figure 2: Closing Rate by Year.]()
 
