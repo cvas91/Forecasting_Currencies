@@ -284,8 +284,90 @@ for df, ax, currency, name in zip(dataframes, axes.flatten(), Currencies, curren
 plt.tight_layout()
 ```
 
-![Figure 3.3.1: LSTM]()
-![Figure 3.3.2: LSTM]()
-![Figure 3.3.3: LSTM]()
-![Figure 3.3.4: LSTM]()
-![Figure 3.3.5: LSTM]()
+![Figure 3.3.1: SVC](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-20%20172642.png?raw=true)
+
+### 3.4 Random Forest Regressor (RFR)
+
+```python
+# Define RFR functions:
+def RFR_Model(data,Currency):
+
+    # Split the dataset
+    X = data[['Open','High','Low']]
+    X_train = X[ :len(data)-1] # all rows but not the last one
+    X_test = X.tail(1) # the last one row
+    y = data['Close']
+    y_train = y[ :len(data)-1] # all rows but not the last one
+    y_test = y.tail(1) # the last one row
+
+    # Create the model Random Forest Regressor
+    RFR = RandomForestRegressor()
+
+    # Train the model
+    RFR.fit(X_train,y_train)
+
+    # Test the model
+    predictions = RFR.predict(X_train)
+
+    # Make prediction
+    prediction = RFR.predict(X_test)
+    print(Currency,'prediction:')
+    print('RFR score is:', (RFR.score(X_train,y_train)*100).round(3),'%')
+    print('RFR predicts the last day to be:', prediction.round(3))
+    print('Actual value is:',y_test.values[0].round(3)) # this should be the last value from the data imported
+    print('Difference between actual and predicted is:',(y_test.values[0] - prediction).round(3))
+    print()
+
+    return
+```
+
+### 3.5 Evaluating Models with Pycaret
+```python
+# Define Pycaret functions:
+def Comparing_Model(data):
+
+    # Apply cleaning functions on data
+    add_pct_change(data)
+    replace_close(data)
+    replace_close(data)
+
+    future_days = 10 # variable for predicting days out into the future
+    data['Future_Price'] = data['Close'].shift(-future_days) # create a new column for the target feature shifted 'n days' up
+
+    X = data[['Close','Future_Price']]
+    X = X[ :len(data)-future_days] # all rows but not the future days
+    y = data['Future_Price']
+    y = y[ :-future_days] # all rows but not the future days
+    split_date = int(len(data) * 0.7) # Change the % to train data 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=split_date, random_state=0, shuffle=False) 
+
+    print('\n \033[1m' + Currency + '\033[0m')
+    regression_setup = setup(data=X_train, target='Future_Price', session_id=123) # Initialize the setup
+    comparing = compare_models(sort='RMSE') # Also sort by RMSE?descending??
+    best_model = create_model(comparing) # The best model for each currency
+    unseen_predictions = predict_model(best_model, data=X_test)
+    data = pd.merge(data, unseen_predictions['prediction_label'], how='left', left_index=True, right_index=True)
+
+    # Visualize Scaled / Predictions and Zoom in
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,5))
+    plt.suptitle("Best Model").set_y(1)
+    data['Close'].plot(ax=ax1, title=f'Scaled and Prediction Datasets - {Currency}')
+    data[['prediction_label']].plot(ax=ax1, style='--', color='red').grid(True)
+    ax1.axvline(data.index[split_date], color='grey', ls='--')
+    ax1.legend(['Raw Data', 'Prediction Data'])
+    data.loc[data.index >= data.index[split_date]]['Close'].plot(ax=ax2, title=f'Zoom in Test Raw and Prediction Dataset - {Currency}')
+    data.loc[data.index >= data.index[split_date]]['prediction_label'].plot(ax=ax2, style='--', color='red').grid(True)
+    ax2.axvline(data.index[split_date], color='grey', ls='--')
+    ax2.legend(['Raw Data', 'Prediction Data'])
+    plt.tight_layout()
+
+    return 
+
+# Perform Pycaret evaluating models across all currencies
+for df, Currency in zip(dataframes, Currencies):
+     Comparing_Model(df)
+plt.show()
+```
+
+![Figure 3.5.1: LSTM]()
+
