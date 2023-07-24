@@ -384,3 +384,11 @@ plt.show()
 ![Figure 3.5.8: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220930.png)
 ![Figure 3.5.9: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220949.png)
 ![Figure 3.5.10: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20221006.png)
+
+##	Discussion of results
+From the experiments described in the previous section, it can be stated that there is not a specific model that adjusts to all currencies, instead individual models should be targeted to each currency to predict its historic trend. 
+The results obtained with the XGB Regressor were not satisfactory due to that it faced a challenge with non-stationarity data like unpredicted exchange rates, making it difficult to train an XGB Regressor model that generalizes well to new data.
+The advantage of LSTM is that the input values fed to the network not only go through several LSTM layers but also propagate through time within one LSTM cell, resulting in a thorough process of inputs in each time step. Unlike traditional time series models such as ARIMA, RNNs are capable of learning nonlinearities, and specialized nodes like LSTM nodes are even better at this. However, LSTM is prone to overfitting the predictions, so to prevent it it can use alternative techniques such as regularization, early stopping, and dropout.
+From the Pycaret experiment, it can be appreciated that the most frequent model is the Light Gradient Boosting Machine (LightGBM) and Linear Regression for the task of predicting different trends. LightGBM is an open-source, gradient-boosting framework based on decision trees that can be used for time series forecasting, is like XGBoost, but it is designed to be more efficient and to reduce memory usage. Although, these models may be affected by temporal dependence, non-stationarity, and seasonality present in the data.
+
+For further analysis and discussion, the full printed version of this project is available upon request.
