@@ -222,9 +222,70 @@ for df, Currency in zip(dataframes, Currencies):
     LSTM_Model(df)
 ```
 
-![Figure 3.2.1: LSTM]()
-![Figure 3.2.2: LSTM]()
-![Figure 3.2.3: LSTM]()
-![Figure 3.2.4: LSTM]()
-![Figure 3.2.5: LSTM]()
+![Figure 3.2.1: LSTM](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20214453.png)
+![Figure 3.2.2: LSTM](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20214510.png)
+![Figure 3.2.3: LSTM](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20214530.png)
+![Figure 3.2.4: LSTM](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20214548.png)
+![Figure 3.2.5: LSTM](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20214608.png)
 
+### 3.3 Support Vector Classifier (SVC)
+```python
+# Define SVC functions:
+def SVC_Model(data):
+
+    # Apply cleaning functions
+    add_pct_change(data)
+    replace_close(data)
+    replace_close(data)
+
+    # Create independent and dependent variables
+    data['High-Low'] = data['High'] - data['Low']
+    data['Open-Close'] = data['Open'] - data['Close']
+    X = data[['Open-Close', 'High-Low', 'Close']] # Define independent variables
+    # Create signals: If tomorrow's close is > today's, then 1 increase, 0 otherwise
+    y = np.where(data.Close.shift(-1) > data.Close, 1, 0) # Target variable
+
+    # Training Dataset
+    split_date = int(len(data) * 0.9)
+    X_train = X[:split_date]
+    y_train = y[:split_date]
+    # Testing Dataset
+    X_test = X[split_date:]
+    y_test = y[split_date:]
+
+    # Create the model SVC
+    svc = SVC()
+
+    svc.fit(X_train[['Open-Close', 'High-Low']],y_train)# Traing the model
+    svc_score_train = svc.score(X_train[['Open-Close', 'High-Low']],y_train)# score of the model on Train
+    svc_score_test = svc.score(X_test[['Open-Close', 'High-Low']],y_test)# score of the model on Test
+
+    data['Predictions'] = svc.predict(X[['Open-Close', 'High-Low']])# model predictions
+    data['Return'] = data['Close'].pct_change() # Calculate daily returns
+    data['Strat_Return'] = data['Predictions'].shift(1)*data['Return'] # Calculate strategy returns
+    data['Cumul_Return'] = data['Return'].cumsum() # Calculate cumulative returns
+    data['Cumul_Strat'] = data['Strat_Return'].cumsum() # Calculate strategy returns
+
+    return
+
+# Perform SVC across all currencies
+
+fig, axes = plt.subplots(2,5, figsize=(20,10))
+plt.suptitle("SVC Model").set_y(1)
+
+for df, ax, currency, name in zip(dataframes, axes.flatten(), Currencies, currencies_names):
+    SVC_Model(df)
+    ax.plot(df['Cumul_Return'], label='Currency Returns')
+    ax.plot(df['Cumul_Strat'], label='Strategy Returns')
+    plt.gcf().autofmt_xdate()
+    ax.set_title(name)
+    ax.grid(True)
+    ax.legend()
+plt.tight_layout()
+```
+
+![Figure 3.3.1: LSTM]()
+![Figure 3.3.2: LSTM]()
+![Figure 3.3.3: LSTM]()
+![Figure 3.3.4: LSTM]()
+![Figure 3.3.5: LSTM]()
