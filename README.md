@@ -140,8 +140,91 @@ for df, Currency in zip(dataframes, Currencies):
     XGB_Model(df)
 ```
 
-![Figure 3.1: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203141.png)
-![Figure 3.2: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203159.png)
-![Figure 3.3: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203218.png)
-![Figure 3.4: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203236.png)
-![Figure 3.5: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203259.png)
+![Figure 3.1.1: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203141.png)
+![Figure 3.1.2: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203159.png)
+![Figure 3.1.3: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203218.png)
+![Figure 3.1.4: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203236.png)
+![Figure 3.1.5: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203259.png)
+
+### 3.2 Long Short Term Memory (LSTM)
+```python
+# Define LSTM functions:
+def LSTM_Model(data):
+
+    # Apply cleaning functions on data
+    add_pct_change(data)
+    replace_close(data)
+    replace_close(data)
+    Feature_Creation(data)
+
+    # Training Dataset
+    split_date = int(len(data) * 0.7)
+    train = np.array(data.CloseScaled.iloc[ :split_date]) # Train in 70% of first dates
+    X_train = []
+    y_train = []
+    for i in range(60, split_date):
+        X_train.append(train[i-60:i])
+        y_train.append(train[i])
+    X_train, y_train= np.array(X_train), np.array(y_train) # convert the train data into array
+    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1)) # Reshape the data
+
+    # Testing Dataset
+    test = np.array(data.CloseScaled.iloc[split_date: ]) # Test in 30% after split
+    X_test = []
+    y_test = data.Close.iloc[split_date+60: ] #normal values from original data
+    for i in range(60, len(test)):
+        X_test.append(test[i-60:i])
+    X_test = np.array(X_test) # convert the train data into array
+    X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))#Reshape the data
+
+    # Create model LSTM
+    seq = Sequential() # Initializing the RNN
+    seq.add(LSTM(50, return_sequences=True, input_shape=(X_train.shape[1], 1))) # Adding the first LSTM layer
+    seq.add(LSTM(50, return_sequences=False)) # Adding the Second LSTM layer
+    seq.add(Dense(25))
+    seq.add(Dense(1))
+    seq.compile(optimizer='adam', loss='mean_squared_error')# Compile the model
+    seq.fit(X_train, y_train, batch_size=32, epochs=1)# Traing the model. Set the epochs=10 takes 10 minutes (100 takes too long)
+
+    # Get model predicted values
+    scaler = MinMaxScaler()
+    scaler.fit(data.filter(['Close']).values)
+    pred = seq.predict(X_test)
+    pred = scaler.inverse_transform(pred) # "inverse scaled values to original values"
+
+    # Calculate the mean squared error on the training data
+    mse_seq = mean_squared_error(y_test, pred)
+    rmse_seq = sqrt(mse_seq)
+    print(f'{Currency} RMSE: {rmse_seq:.2f}')
+
+    # Split Close non-scaled data into train and valid df
+    train_df = pd.DataFrame(data.Close.iloc[ :split_date+60]) # Train in 70% of first dates
+    valid_df = pd.DataFrame(data.Close.iloc[split_date+60: ]) # Test in 30% after split
+    valid_df['Prediction'] = pred # Add Predictions column with the inverse scaled values
+
+    # Plot the Training and Testing data sets and zoom in
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,5))
+    plt.suptitle("LSTM Sequential Model").set_y(1)
+    train_df.plot(ax=ax1, label='Training Set', title=f'Raw and Prediction Data - {Currency}')
+    valid_df.plot(ax=ax1, label=['Valid Data','Prediction Data']).grid(True)
+    ax1.axvline(data.index[split_date+60], color='grey', ls='--')
+    ax1.legend(['Training Data', 'Valid Data','Prediction Data'])
+    valid_df['Close'].plot(ax = ax2, color='darkseagreen', title=f'Zoom in Test Raw and Prediction Data - {Currency}')
+    valid_df['Prediction'].plot(ax = ax2, style='--', color='red').grid(True)
+    ax2.axvline(data.index[split_date+60], color='grey', ls='--')
+    ax2.legend(['Valid Data', 'Prediction Data'])
+    plt.tight_layout()
+
+    return 
+
+# Perform LSTM across all currencies
+for df, Currency in zip(dataframes, Currencies):
+    LSTM_Model(df)
+```
+
+![Figure 3.2.1: LSTM]()
+![Figure 3.2.2: LSTM]()
+![Figure 3.2.3: LSTM]()
+![Figure 3.2.4: LSTM]()
+![Figure 3.2.5: LSTM]()
+
