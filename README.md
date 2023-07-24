@@ -140,3 +140,4 @@ for df, Currency in zip(dataframes, Currencies):
     XGB_Model(df)
 ```
 
+![Figure 3: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203141.png)
