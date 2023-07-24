@@ -2,8 +2,9 @@
 
 ## Abstract
 This project aims to forecast the exchange rates of ten emerging currencies (USD/BRL, USD/MXN, USD/COP, USD/ARS, USD/NGN, USD/PHP, USD/TRY, USD/RUB, USD/INR, and USD/CNY) by applying machine learning techniques like Long Short-Term Memory (LSTM), Extreme Gradient Boosting XGB Regressor, and the Pycaret library. Through the experimentation of these models, it results that each currency should have its prediction model, instead of generalizing one single model to predict all currencies.
-## 1. Data Exploration
-
+## 1. Introduction
+Forecasting the exchange rate is a significant concern when comparing the economic development of any nation. The shapes and trends of different foreign exchange markets provide valuable insights regarding a country's macroeconomic conditions, which any public policymaker, international company, investor, or individual consumer could benefit from. However, predicting currency exchange rates is a difficult task due to many developing countries unstable performance and hectic political or economic conditions. Likewise, this study will contribute to academic research targeted at emerging currencies with highly volatile economic conditions. 
+## 2. Data Preparation
 ```python
 # Source: https://finance.yahoo.com/currencies
 start_date = '2020-01-01'
@@ -19,7 +20,6 @@ for i in Currencies:
     data_X = yf.download(i+'=X', start=start_date, end=end_date)
     dataframes.append(data_X)#
 ```
-## 2. Data Preparation
 ```python
 # Define cleaning functions:
 
@@ -86,8 +86,9 @@ plt.tight_layout()
 ![Figure 2: Closing Rate by Year.](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Closing%20Rate%20by%20Year.png)
 
 ## 3. Machine Learning Models
-### 3.1 Extreme Gradient Boosting XGB Regressor
 
+### 3.1 Extreme Gradient Boosting XGB Regressor
+To use the XGB Regressor, the hyperparameters that control various aspects of the model will be a learning rate of 0.01, the number of gradient-boosted trees equal to 1000, and 50 early stopping rounds. Once the hyperparameters have been specified, the model is fitted to the training data which consists of the day of the week, month, quarter, year, and the scaled closing rate of the first 70% of historical data, then use the model to make predictions on the remaining 30% of test data.
 ```python
 # Define XGB functions:
 def XGB_Model(data):
@@ -139,14 +140,14 @@ def XGB_Model(data):
 for df, Currency in zip(dataframes, Currencies):
     XGB_Model(df)
 ```
-
 ![Figure 3.1.1: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203141.png)
 ![Figure 3.1.2: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203159.png)
 ![Figure 3.1.3: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203218.png)
 ![Figure 3.1.4: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203236.png)
 ![Figure 3.1.5: XGB Regressor](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20203259.png)
 
-### 3.2 Long Short Term Memory (LSTM)
+### 3.2 Long Short-Term Memory (LSTM)
+The implementation of the LSTM is initialized as a sequential model, which means that the layers are stacked sequentially. The first layer with 50 units and it returns the full sequence of outputs. The input shape is the length of the training data, i.e., 70% of the historic time series with a batch size of 32 and 1 epoch to make the training faster. The second layer has another 50 units, but this time it only returns the last output sequence. After that, there are two dense layers with 25 and 1 units respectively. Finally, the model is compiled with the Adam optimizer and the mean squared error loss function. 
 ```python
 # Define LSTM functions:
 def LSTM_Model(data):
@@ -229,6 +230,8 @@ for df, Currency in zip(dataframes, Currencies):
 ![Figure 3.2.5: LSTM](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20214608.png)
 
 ### 3.3 Support Vector Classifier (SVC)
+An alternative experiment is conducted with the SVC to make predictions on the dataset. This attempt uses the difference between Open - Close and High - Low features to calculate the daily returns, strategy returns, cumulative returns, and cumulative strategy returns for each currency exchange rate. The daily returns are calculated as the percentage change in the Close rate. The strategy returns are calculated by multiplying the predictions (shifted by a one-time step) by the daily returns. The cumulative returns and cumulative strategy returns are calculated by taking the cumulative sum of the daily returns and strategy returns, respectively.
+
 ```python
 # Define SVC functions:
 def SVC_Model(data):
@@ -322,6 +325,8 @@ def RFR_Model(data,Currency):
 ```
 
 ### 3.5 Evaluating Models with Pycaret
+The important PyCaret functions applied in this experiment include the following: Initialize the regression setup on train data composed of 70% of initial historical data and set the target feature as the future price predicted ten days ahead of the closing rate. Then compare_models function trains all the regressions available in the Pycaret library using the default hyperparameters and evaluates performance metrics. Metrics used to compare regression results are MAE, MSE, RMSE, R2, RMSLE, and MAPE. The create_model function trains the model that was identified as the most accurate using the specified RMSE hyperparameter and evaluates its performance metrics using cross-validation. Finally, the function predict_model is used on the founded model for each inference and passes through the test dataset to estimate predictions.
+
 ```python
 # Define Pycaret functions:
 def Comparing_Model(data):
@@ -369,5 +374,13 @@ for df, Currency in zip(dataframes, Currencies):
 plt.show()
 ```
 
-![Figure 3.5.1: LSTM]()
-
+![Figure 3.5.1: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220721.png)
+![Figure 3.5.2: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220739.png)
+![Figure 3.5.3: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220754.png)
+![Figure 3.5.4: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220811.png)
+![Figure 3.5.5: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220830.png)
+![Figure 3.5.6: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220853.png)
+![Figure 3.5.7: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220912.png)
+![Figure 3.5.8: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220930.png)
+![Figure 3.5.9: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20220949.png)
+![Figure 3.5.10: Pycaret](https://github.com/cvas91/Forecasting_Currencies/blob/main/Figures/Screenshot%202023-07-23%20221006.png)
